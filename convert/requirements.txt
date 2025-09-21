@@ -1,0 +1,6 @@
+jax
+flax
+numpy
+torch
+tqdm
+wandb

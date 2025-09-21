@@ -1,0 +1,22 @@
+# GCBF+ 依賴文件
+# JAX ecosystem
+jax>=0.4.13
+jaxlib>=0.4.13
+flax>=0.7.0
+optax>=0.1.7
+
+# Scientific computing
+numpy>=1.21.0
+scipy>=1.9.0
+
+# Deep learning utilities
+einops>=0.6.0
+
+# Logging and experiment tracking
+wandb>=0.15.0
+
+# Progress bars and visualization
+tqdm>=4.64.0
+
+# For QP solving (jaxproxqp is included in project)
+# No additional QP solver dependencies needed

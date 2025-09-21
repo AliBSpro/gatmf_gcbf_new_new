@@ -1,0 +1,17 @@
+# GAT-MF 依賴文件
+# PyTorch ecosystem
+torch>=1.13.0
+torchvision>=0.14.0
+torchaudio>=0.13.0
+
+# Scientific computing
+numpy>=1.21.0
+
+# Progress bars
+tqdm>=4.64.0
+
+# Plotting and visualization
+matplotlib>=3.5.0
+
+# Additional utilities
+scipy>=1.9.0
