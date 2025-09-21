@@ -1,0 +1,35 @@
+# GAT-MF + GCBF+ 智能体训练项目
+
+# 🎯 GAT-MF 核心依赖
+torch>=1.13.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+tqdm>=4.64.0
+
+# 🛡️ GCBF+ 核心依赖 (可选，用于安全约束训练)
+jax>=0.4.0
+jaxlib>=0.4.0  
+flax>=0.6.0
+optax>=0.1.5
+equinox>=0.10.0
+jaxtyping>=0.2.0
+chex>=0.1.5
+dm-haiku>=0.0.9
+jraph>=0.0.5.dev0
+tensorflow-probability>=0.19.0
+
+# 🎬 可视化依赖
+seaborn>=0.11.0
+colour>=0.1.5
+
+# 🔧 工具依赖
+scipy>=1.7.0
+loguru>=0.6.0
+einops>=0.6.0
+wandb>=0.13.0
+
+# 📦 最小安装 (仅GAT-MF + 可视化)
+# pip install torch numpy matplotlib tqdm colour
+
+# 📦 完整安装 (GAT-MF + GCBF+ + 可视化)  
+# pip install -r requirements.txt
