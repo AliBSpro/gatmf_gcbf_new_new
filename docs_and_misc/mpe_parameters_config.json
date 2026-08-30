@@ -1,0 +1,338 @@
+{
+  "project_info": {
+    "name": "Hybrid MAPPO-GCBF+ for MPE",
+    "version": "1.0.0",
+    "description": "Multi-agent reinforcement learning with safety constraints in MPE environments",
+    "last_updated": "2025-01-01"
+  },
+
+  "environment": {
+    "world_physics": {
+      "area_size": 2.0,
+      "world_bounds": [-1.0, 1.0],
+      "dim_p": 2,
+      "dim_c": 2,
+      "dt": 0.1,
+      "integrator": "euler",
+      "damping": 0.25,
+      "contact_force": 100.0,
+      "contact_margin": 0.001
+    },
+    
+    "action_space": {
+      "discrete_action": false,
+      "action_dim": 2,
+      "action_range": [-5.0, 5.0],
+      "policy_output_range": [-1.0, 1.0],
+      "action_scaling_factor": 5.0
+    }
+  },
+
+  "agents": {
+    "physical_properties": {
+      "size": 0.05,
+      "mass": 1.0,
+      "initial_mass": 1.0,
+      "density": 25.0,
+      "u_range": 1.0,
+      "max_speed": null,
+      "max_acceleration": 5.0,
+      "accel_coefficient": 5.0
+    },
+    
+    "capabilities": {
+      "movable": true,
+      "collide": true,
+      "adversary": false,
+      "dummy": false,
+      "silent": false,
+      "blind": false,
+      "u_noise": null,
+      "c_noise": null
+    }
+  },
+
+  "landmarks": {
+    "physical_properties": {
+      "size": 0.05,
+      "mass": 1.0,
+      "density": 25.0,
+      "movable": false,
+      "collide": false,
+      "boundary": false
+    }
+  },
+
+  "safety_constraints": {
+    "collision_avoidance": {
+      "simple_spread": {
+        "min_distance": 0.18,
+        "safety_margin": 0.04,
+        "total_safe_distance": 0.22,
+        "collision_threshold": 0.10
+      },
+      "simple_navigation": {
+        "min_distance": 0.16,
+        "safety_margin": 0.04,
+        "total_safe_distance": 0.20,
+        "collision_threshold": 0.10
+      },
+      "constraint_type": "soft_penalty",
+      "penalty_weight": 8.0,
+      "barrier_function": "exponential"
+    },
+    
+    "boundary_constraints": {
+      "simple_spread": {
+        "boundary_buffer": 0.08,
+        "safe_area_bounds": [-0.92, 0.92]
+      },
+      "simple_navigation": {
+        "boundary_buffer": 0.06,
+        "safe_area_bounds": [-0.94, 0.94]
+      },
+      "constraint_type": "exponential",
+      "strength_factor": 1.5,
+      "violation_penalty": 5.0
+    }
+  },
+
+  "scenarios": {
+    "simple_spread": {
+      "scenario_name": "simple_spread",
+      "num_agents": 3,
+      "num_landmarks": 3,
+      "max_episode_length": 25,
+      "task_type": "coverage",
+      "success_criteria": "all_landmarks_covered",
+      "coverage_threshold": 0.1,
+      "reward_components": {
+        "coverage_reward": -1.0,
+        "collision_penalty": -1.0,
+        "step_penalty": 0.0,
+        "boundary_penalty": -0.1
+      },
+      "initialization": {
+        "agent_init_pos": "random",
+        "landmark_init_pos": "random",
+        "init_pos_range": [-1.0, 1.0]
+      }
+    },
+    
+    "simple_navigation": {
+      "scenario_name": "simple_navigation",
+      "num_agents": 3,
+      "num_landmarks": 3,
+      "max_episode_length": 25,
+      "task_type": "navigation",
+      "success_criteria": "all_agents_arrived",
+      "arrival_threshold": 0.1,
+      "reward_components": {
+        "distance_reward": -1.0,
+        "collision_penalty": -1.0,
+        "boundary_penalty": -0.1,
+        "step_penalty": 0.0
+      },
+      "initialization": {
+        "target_assignment": "random",
+        "target_init_pos": "random"
+      }
+    }
+  },
+
+  "graph_structure": {
+    "node_config": {
+      "node_dim": 6,
+      "node_features": {
+        "simple_spread": "x, y, vx, vy, closest_landmark_x, closest_landmark_y",
+        "simple_navigation": "x, y, vx, vy, goal_x, goal_y"
+      },
+      "node_type": [0, 0, 0]
+    },
+    
+    "edge_config": {
+      "edge_dim": 4,
+      "edge_features": "distance, relative_x, relative_y, relative_speed",
+      "connectivity_pattern": "fully_connected",
+      "n_edges": 6
+    },
+    
+    "state_config": {
+      "state_dim": 4,
+      "state_features": "x, y, vx, vy",
+      "env_state_dim": 3
+    }
+  },
+
+  "observation_space": {
+    "simple_spread": {
+      "agent_obs_dim": 16,
+      "obs_components": {
+        "self_velocity": 2,
+        "self_position": 2,
+        "landmark_rel_pos": 6,
+        "other_agent_rel_pos": 4
+      },
+      "global_state_dim": 18,
+      "global_components": {
+        "all_agent_states": 12,
+        "all_landmark_pos": 6
+      }
+    },
+    
+    "simple_navigation": {
+      "agent_obs_dim": 10,
+      "obs_components": {
+        "self_velocity": 2,
+        "self_position": 2,
+        "goal_rel_pos": 2,
+        "other_agent_rel_pos": 4
+      },
+      "global_state_dim": 18,
+      "global_components": {
+        "all_agent_states": 12,
+        "all_goal_pos": 6
+      }
+    }
+  },
+
+  "training": {
+    "gcbf_plus": {
+      "network": {
+        "gnn_layers": 1,
+        "batch_size": 256,
+        "buffer_size": 512,
+        "horizon": 32
+      },
+      "learning": {
+        "lr_actor": 1.0e-5,
+        "lr_cbf": 1.0e-5,
+        "inner_epoch": 8,
+        "max_grad_norm": 2.0
+      },
+      "cbf_parameters": {
+        "alpha": 1.2,
+        "eps": 0.015,
+        "barrier_type": "exponential"
+      },
+      "loss_weights": {
+        "loss_action_coef": 0.001,
+        "loss_unsafe_coef": 1.0,
+        "loss_safe_coef": 1.0,
+        "loss_h_dot_coef": 0.2
+      }
+    },
+    
+    "mappo": {
+      "network": {
+        "hidden_size": 64,
+        "layer_N": 1,
+        "use_orthogonal": true,
+        "activation_id": 1
+      },
+      "learning": {
+        "learning_rate": 3.0e-4,
+        "critic_lr": 3.0e-4,
+        "ppo_epochs": 10,
+        "max_grad_norm": 10.0
+      },
+      "algorithm": {
+        "clip_param": 0.2,
+        "entropy_coef": 0.01,
+        "value_loss_coef": 1.0,
+        "use_clipped_value_loss": true,
+        "use_huber_loss": true,
+        "use_valuenorm": true
+      }
+    },
+    
+    "hybrid": {
+      "weights": {
+        "simple_spread": {
+          "u_ref_weight": 0.7,
+          "safety_weight": 0.3
+        },
+        "simple_navigation": {
+          "u_ref_weight": 0.8,
+          "safety_weight": 0.2
+        }
+      },
+      "update_frequency": {
+        "mappo_update_freq": 1,
+        "gcbf_update_freq": 1
+      },
+      "schedule": {
+        "simple_spread": {
+          "total_steps": 2000,
+          "mappo_pretrain_steps": 500
+        },
+        "simple_navigation": {
+          "total_steps": 2500,
+          "mappo_pretrain_steps": 600
+        }
+      },
+      "parallel": {
+        "n_env_train": 16,
+        "n_env_test": 8
+      }
+    }
+  },
+
+  "system": {
+    "runtime": {
+      "device": "auto",
+      "seed": 42,
+      "jax_dtype": "float32",
+      "torch_dtype": "float32"
+    },
+    "logging": {
+      "log_interval": 10,
+      "eval_interval": 50,
+      "save_interval": 100
+    },
+    "evaluation": {
+      "eval_episodes": 10,
+      "eval_deterministic": true
+    }
+  },
+
+  "metrics": {
+    "success_criteria": {
+      "simple_spread": {
+        "all_landmarks_covered": true,
+        "no_collisions": true,
+        "within_boundaries": true,
+        "max_episode_steps": 25
+      },
+      "simple_navigation": {
+        "all_agents_arrived": true,
+        "no_collisions": true,
+        "within_boundaries": true,
+        "max_episode_steps": 25
+      }
+    },
+    
+    "task_metrics": [
+      "success_rate",
+      "coverage_rate", 
+      "arrival_rate",
+      "average_episode_length",
+      "task_completion_time"
+    ],
+    
+    "safety_metrics": [
+      "collision_rate",
+      "boundary_violation_rate",
+      "safety_constraint_satisfaction",
+      "min_distance_violations",
+      "safety_score"
+    ],
+    
+    "efficiency_metrics": [
+      "computational_time",
+      "action_smoothness",
+      "energy_consumption",
+      "path_efficiency"
+    ]
+  }
+}
